@@ -24,6 +24,8 @@ namespace ProctorApi.Models
         public string LastName { get; set; }
         public string ContactAddress { get; set; }
         public bool IsActive { get; set; }
+        public string Gravatar { get; set; }
+        public string CellNumber { get; set; }
 
     }
 }

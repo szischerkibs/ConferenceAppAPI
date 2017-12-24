@@ -11,6 +11,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web;
+using ProctorApi.Repositories;
 
 namespace ProctorApi.Providers
 {
@@ -49,7 +50,10 @@ namespace ProctorApi.Providers
                     return;
                 }
 
+                UserRepository _userRepository = new UserRepository();
+
                 var roles = userManager.GetRoles(user.Id);
+                var userInfo = _userRepository.GetUserById(user.Id);
 
                 ClaimsIdentity oAuthIdentity = await user.GenerateUserIdentityAsync(userManager,
                     OAuthDefaults.AuthenticationType);
@@ -57,7 +61,7 @@ namespace ProctorApi.Providers
                 ClaimsIdentity cookiesIdentity = await user.GenerateUserIdentityAsync(userManager,
                     CookieAuthenticationDefaults.AuthenticationType);
 
-                AuthenticationProperties properties = CreateProperties(user.UserName, user.Id, roles);
+                AuthenticationProperties properties = CreateProperties(user.UserName, user.Id, roles, userInfo);
 
                 AuthenticationTicket ticket = new AuthenticationTicket(oAuthIdentity, properties);
                 context.Validated(ticket);
@@ -105,15 +109,50 @@ namespace ProctorApi.Providers
             return Task.FromResult<object>(null);
         }
 
-        public static AuthenticationProperties CreateProperties(string userName, string userId, IEnumerable<string> roles)
+        public static AuthenticationProperties CreateProperties(string userName, string userId, IEnumerable<string> roles, User user)
         {
             IDictionary<string, string> data = new Dictionary<string, string>
             {
                 { "userName", userName },
                 { "userId", userId },
                 { "roles", string.Join(",", roles.Select(x=>x.ToLower())) },
+                { "user", Newtonsoft.Json.JsonConvert.SerializeObject(user) }
             };
             return new AuthenticationProperties(data);
+        }
+
+        public override Task GrantRefreshToken(OAuthGrantRefreshTokenContext context)
+        {
+            var userId = context.Ticket.Properties.Dictionary["userId"];
+            if (string.IsNullOrEmpty(userId))
+            {
+                context.SetError("invalid_grant", "User Id not set.");
+                return Task.FromResult<object>(null);
+            }
+
+            var userManager = context.OwinContext.GetUserManager<ApplicationUserManager>();
+            User user = userManager.Users.Single(i => i.Id == userId);
+
+            if (user == null)
+            {
+                context.SetError("invalid_grant", "User not found.");
+                return Task.FromResult<object>(null);
+            }
+
+            if (!user.IsActive)
+            {
+                context.SetError("invalid_grant", "Error logging in user.");
+                return Task.FromResult<object>(null);
+            }
+
+            // Change auth ticket for refresh token requests
+            var newIdentity = new ClaimsIdentity(context.Ticket.Identity);
+            newIdentity.AddClaim(new Claim("newClaim", "newValue"));
+
+            var newTicket = new AuthenticationTicket(newIdentity, context.Ticket.Properties);
+            context.Validated(newTicket);
+
+            return Task.FromResult<object>(null);
         }
     }
 

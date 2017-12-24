@@ -13,5 +13,7 @@ namespace ProctorApi.Utils
         public static string TokenAudienceSecret => ConfigurationManager.AppSettings["Token:AudienceSecret"];
 
         public static int TokenExpireTimeMinutes => Convert.ToInt32(ConfigurationManager.AppSettings["Token:TokenExpireTimeMinutes"]);
+        public static int RefreshTokenExpireTimeMinutes => Convert.ToInt32(ConfigurationManager.AppSettings["Token:RefreshTokenExpireTimeMinutes"]);
+
     }
 }
