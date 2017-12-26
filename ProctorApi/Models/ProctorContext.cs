@@ -24,6 +24,11 @@ namespace ProctorApi.Models
         }
 
         public DbSet<RefreshToken> RefreshTokens { get; set; }
+        public DbSet<Session> Sessions { get; set; }
+        public DbSet<Speaker> Speakers { get; set; }
+        public DbSet<Room> Rooms { get; set; }
+        public DbSet<Tag> Tags { get; set; }
+
 
         public async Task<bool> AddRefreshToken(RefreshToken token)
         {

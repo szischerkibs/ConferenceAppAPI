@@ -14,6 +14,7 @@ namespace ProctorApi.Migrations
         public Configuration()
         {
             AutomaticMigrationsEnabled = false;
+            AutomaticMigrationDataLossAllowed = true;
         }
 
         protected override void Seed(ProctorApi.Models.ProctorContext context)

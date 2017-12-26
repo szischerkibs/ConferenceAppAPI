@@ -8,7 +8,10 @@ using System.Net;
 using System.Net.Http;
 using System.Web.Http;
 using System.Web.Http.Description;
+using Microsoft.AspNet.Identity.EntityFramework;
+using Microsoft.AspNet.Identity;
 using ProctorApi.Models;
+using ProctorApi.Utils;
 
 namespace ProctorApi.Controllers
 {
@@ -74,28 +77,9 @@ namespace ProctorApi.Controllers
         [ResponseType(typeof(User))]
         public IHttpActionResult PostUser(User user)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            db.Users.Add(user);
-
-            try
-            {
-                db.SaveChanges();
-            }
-            catch (DbUpdateException)
-            {
-                if (UserExists(user.Id))
-                {
-                    return Conflict();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            var userManager = new ApplicationUserManager(new UserStore<User>(db));
+            
+            userManager.Create(user, "password");
 
             return CreatedAtRoute("DefaultApi", new { id = user.Id }, user);
         }
