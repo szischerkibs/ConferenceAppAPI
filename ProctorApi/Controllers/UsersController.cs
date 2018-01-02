@@ -12,29 +12,35 @@ using Microsoft.AspNet.Identity.EntityFramework;
 using Microsoft.AspNet.Identity;
 using ProctorApi.Models;
 using ProctorApi.Utils;
+using ProctorApi.Repositories;
+using ProctorApi.DTO;
 
 namespace ProctorApi.Controllers
 {
     public class UsersController : ApiController
     {
         private ProctorContext db = new ProctorContext();
+        private UserRepository _userRepository;
+        private RoleRepository _roleRepository;
+
+        public UsersController()
+        {
+            _userRepository = new UserRepository();
+            _roleRepository = new RoleRepository();
+        }
 
         // GET: api/Users
-        public IQueryable<User> GetUsers()
+        public IList<UserDto> GetUsers()
         {
-            return db.Users;
+            var users = _userRepository.GetUsers();
+            return users;
         }
 
         // GET: api/Users/5
-        [ResponseType(typeof(User))]
+        [ResponseType(typeof(UserDto))]
         public IHttpActionResult GetUser(string id)
         {
-            User user = db.Users.Find(id);
-            if (user == null)
-            {
-                return NotFound();
-            }
-
+            UserDto user = _userRepository.GetUserById(id);
             return Ok(user);
         }
 
@@ -79,7 +85,13 @@ namespace ProctorApi.Controllers
         {
             var userManager = new ApplicationUserManager(new UserStore<User>(db));
             
-            userManager.Create(user, "password");
+            var newUser = userManager.Create(user, "password");
+           
+            if (newUser.Succeeded)
+            {
+                userManager.AddToRole(user.Id, "Everyone");
+                userManager.AddToRole(user.Id, "Volunteers");
+            }
 
             return CreatedAtRoute("DefaultApi", new { id = user.Id }, user);
         }

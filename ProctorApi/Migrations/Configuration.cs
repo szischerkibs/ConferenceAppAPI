@@ -65,6 +65,7 @@ namespace ProctorApi.Migrations
                     continue;
                 userManager.Create(user, "Admin1234!");
                 userManager.AddToRole(user.Id, "Admin");
+                userManager.AddToRole(user.Id, "Everyone");
             }
 
         }

@@ -7,6 +7,8 @@ using Microsoft.AspNet.Identity.EntityFramework;
 using System.Data.Entity;
 using Microsoft.AspNet.Identity;
 using ProctorApi.Utils;
+using ProctorApi.DTO;
+using ProctorApi.Providers;
 
 namespace ProctorApi.Repositories
 {
@@ -23,15 +25,31 @@ namespace ProctorApi.Repositories
             _userManager = new ApplicationUserManager(new UserStore<User>(_context));
         }
 
-        public List<IdentityRole> GetRoles()
-        {            
+        public List<RoleDto> GetRoles()
+        {
+            List<RoleDto> rolesDto = new List<RoleDto>();
+
             var roles = _roleManager.Roles.ToList();
-            return roles;
+            foreach(var role in roles)
+            {
+                rolesDto.Add(MapToDto.MapRolesToDto(role));
+            }
+
+            return rolesDto;
         }
 
-        public IdentityRole GetRoleById(string id)
+        
+
+        public RoleDto GetRoleById(string id)
         {
-            return _roleManager.Roles.FirstOrDefault(r => r.Id == id);            
+            var role = _roleManager.Roles.FirstOrDefault(r => r.Id == id);
+            return MapToDto.MapRolesToDto(role);
+        }
+
+        public RoleDto GetRoleByName(string name)
+        {
+            var role = _roleManager.Roles.FirstOrDefault(r => r.Name == name);
+            return MapToDto.MapRolesToDto(role);
         }
 
         public void UpdateRole(IdentityRole role)
@@ -50,12 +68,18 @@ namespace ProctorApi.Repositories
             _roleManager.Delete(role);
         }
 
-        public IEnumerable<User> GetUsersForRole(string id)
+        public IEnumerable<UserDto> GetUsersForRole(string id)
         {
 
             UserRepository _userRepository = new UserRepository();
             var users = _context.Users.Where(user => user.Roles.Any(role => role.RoleId == id)).ToList();
-            return users;
+            var usersDto = new List<UserDto>();
+            foreach(var user in users)
+            {
+                usersDto.Add(MapToDto.MapUserToDto(user));
+            }
+
+            return usersDto;
         }
 
         public void AddUserToRole(string userId, string roleId)

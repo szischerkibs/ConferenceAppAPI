@@ -12,6 +12,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web;
 using ProctorApi.Repositories;
+using ProctorApi.DTO;
 
 namespace ProctorApi.Providers
 {
@@ -67,7 +68,7 @@ namespace ProctorApi.Providers
                 context.Validated(ticket);
                 context.Request.Context.Authentication.SignIn(cookiesIdentity);
             }
-            catch (Exception ex)
+            catch 
             {
                 context.SetError("Critical Error", "Critical Error logging in");
             }
@@ -109,7 +110,7 @@ namespace ProctorApi.Providers
             return Task.FromResult<object>(null);
         }
 
-        public static AuthenticationProperties CreateProperties(string userName, string userId, IEnumerable<string> roles, User user)
+        public static AuthenticationProperties CreateProperties(string userName, string userId, IEnumerable<string> roles, UserDto user)
         {
             IDictionary<string, string> data = new Dictionary<string, string>
             {

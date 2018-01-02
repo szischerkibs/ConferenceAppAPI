@@ -28,6 +28,8 @@ namespace ProctorApi.Models
         public DbSet<Speaker> Speakers { get; set; }
         public DbSet<Room> Rooms { get; set; }
         public DbSet<Tag> Tags { get; set; }
+        public DbSet<UserCheckIn> UserCheckIns { get; set; }
+        public DbSet<ScheduleException> ScheduleExceptions { get; set; }
 
 
         public async Task<bool> AddRefreshToken(RefreshToken token)

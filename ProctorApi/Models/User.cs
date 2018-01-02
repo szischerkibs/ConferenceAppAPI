@@ -26,6 +26,7 @@ namespace ProctorApi.Models
         public bool IsActive { get; set; }
         public string Gravatar { get; set; }
         public string CellNumber { get; set; }
+        public virtual List<Session> Sessions { get; set; }        
 
     }
 }

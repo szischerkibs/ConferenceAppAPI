@@ -122,6 +122,7 @@
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Web.Http.OData, Version=5.3.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.AspNet.WebApi.OData.5.3.1\lib\net45\System.Web.Http.OData.dll</HintPath>
     </Reference>
@@ -243,9 +244,17 @@
     <Compile Include="Areas\HelpPage\XmlDocumentationProvider.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\RoleController.cs" />
+    <Compile Include="Controllers\RoomController.cs" />
+    <Compile Include="Controllers\ScheduleExceptionsController.cs" />
     <Compile Include="Controllers\SessionsController.cs" />
     <Compile Include="Controllers\UsersController.cs" />
     <Compile Include="Controllers\ValuesController.cs" />
+    <Compile Include="DTO\CheckInInfoDto.cs" />
+    <Compile Include="DTO\RoleDto.cs" />
+    <Compile Include="DTO\RoomDto.cs" />
+    <Compile Include="DTO\SessionDto.cs" />
+    <Compile Include="DTO\SpeakerDto.cs" />
+    <Compile Include="DTO\UserDto.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
@@ -269,7 +278,37 @@
     <Compile Include="Migrations\201712261519067_Session Data.Designer.cs">
       <DependentUpon>201712261519067_Session Data.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201712271803568_Check In Info.cs" />
+    <Compile Include="Migrations\201712271803568_Check In Info.Designer.cs">
+      <DependentUpon>201712271803568_Check In Info.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201712282216036_Updates to PK,FK and relationships.cs" />
+    <Compile Include="Migrations\201712282216036_Updates to PK,FK and relationships.Designer.cs">
+      <DependentUpon>201712282216036_Updates to PK,FK and relationships.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201712282217008_Auto-assign SP and UDF.cs" />
+    <Compile Include="Migrations\201712282217008_Auto-assign SP and UDF.Designer.cs">
+      <DependentUpon>201712282217008_Auto-assign SP and UDF.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201712311654372_Updated Objects.cs" />
+    <Compile Include="Migrations\201712311654372_Updated Objects.Designer.cs">
+      <DependentUpon>201712311654372_Updated Objects.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201712312046077_Updated Session Check in relationship.cs" />
+    <Compile Include="Migrations\201712312046077_Updated Session Check in relationship.Designer.cs">
+      <DependentUpon>201712312046077_Updated Session Check in relationship.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201712312055000_Updated Fixing Session Object.cs" />
+    <Compile Include="Migrations\201712312055000_Updated Fixing Session Object.Designer.cs">
+      <DependentUpon>201712312055000_Updated Fixing Session Object.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201801011445395_Added schedule exceptions.cs" />
+    <Compile Include="Migrations\201801011445395_Added schedule exceptions.Designer.cs">
+      <DependentUpon>201801011445395_Added schedule exceptions.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
+    <Compile Include="Models\ScheduleException.cs" />
+    <Compile Include="Models\UserCheckIn.cs" />
     <Compile Include="Models\ProctorContext.cs" />
     <Compile Include="Models\RefreshToken.cs" />
     <Compile Include="Models\Room.cs" />
@@ -281,10 +320,13 @@
     <Compile Include="Providers\ApplicationOAuthProvider.cs" />
     <Compile Include="Providers\Configuration.cs" />
     <Compile Include="Providers\JWTFormat.cs" />
+    <Compile Include="Providers\MapToDto.cs" />
     <Compile Include="Providers\RefreshTokenProvider.cs" />
     <Compile Include="Repositories\BaseSqlRepository.cs" />
     <Compile Include="Repositories\RoleRepository.cs" />
+    <Compile Include="Repositories\RoomRepository.cs" />
     <Compile Include="Repositories\SessionRepository.cs" />
+    <Compile Include="Repositories\UserCheckInRepository.cs" />
     <Compile Include="Repositories\UserRepository.cs" />
     <Compile Include="Startup.cs" />
     <Compile Include="Utils\ApplicationUserManager.cs" />
@@ -376,6 +418,27 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201712261519067_Session Data.resx">
       <DependentUpon>201712261519067_Session Data.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201712271803568_Check In Info.resx">
+      <DependentUpon>201712271803568_Check In Info.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201712282216036_Updates to PK,FK and relationships.resx">
+      <DependentUpon>201712282216036_Updates to PK,FK and relationships.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201712282217008_Auto-assign SP and UDF.resx">
+      <DependentUpon>201712282217008_Auto-assign SP and UDF.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201712311654372_Updated Objects.resx">
+      <DependentUpon>201712311654372_Updated Objects.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201712312046077_Updated Session Check in relationship.resx">
+      <DependentUpon>201712312046077_Updated Session Check in relationship.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201712312055000_Updated Fixing Session Object.resx">
+      <DependentUpon>201712312055000_Updated Fixing Session Object.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201801011445395_Added schedule exceptions.resx">
+      <DependentUpon>201801011445395_Added schedule exceptions.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

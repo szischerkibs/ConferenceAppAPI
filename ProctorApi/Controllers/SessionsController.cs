@@ -8,6 +8,7 @@ using System.Net;
 using System.Net.Http;
 using System.Web.Http;
 using System.Web.Http.Description;
+using ProctorApi.DTO;
 using ProctorApi.Models;
 using ProctorApi.Repositories;
 
@@ -17,27 +18,33 @@ namespace ProctorApi.Controllers
     {
         private ProctorContext db = new ProctorContext();
         private SessionRepository _sessionRepository;
+        private RoomRepository _roomRepository;
+        private UserCheckInRepository _userCheckInRepository;
 
         public SessionsController()
         {
             _sessionRepository = new SessionRepository();
+            _roomRepository = new RoomRepository();
+            _userCheckInRepository = new UserCheckInRepository();
         }
 
         // GET: api/Sessions
-        public IQueryable<Session> GetSessions()
+        public IList<SessionDto> GetSessions()
         {
-            return db.Sessions.Include("Rooms");
+            //var sessions =  db.Sessions
+            //    .Include("Rooms")
+            //    .ToList();
+            //return sessions;
+            return _sessionRepository.getSessions();
+            
         }
 
         // GET: api/Sessions/5
-        [ResponseType(typeof(Session))]
+        [ResponseType(typeof(SessionDto))]
         public IHttpActionResult GetSession(int id)
         {
-            Session session = db.Sessions.Find(id);
-            if (session == null)
-            {
-                return NotFound();
-            }
+            var session = _sessionRepository.getSessionById(id);
+            //var session = db.Sessions.FirstOrDefault(s => s.Id == id);
 
             return Ok(session);
         }
@@ -46,36 +53,55 @@ namespace ProctorApi.Controllers
         [ResponseType(typeof(void))]
         public IHttpActionResult PutSession(int id, Session session)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
             if (id != session.Id)
             {
                 return BadRequest();
             }
 
-            db.Entry(session).State = EntityState.Modified;
+            var sessionToUpdate = db.Sessions
+                .FirstOrDefault(s => s.Id == id);
 
-            try
-            {
-                db.SaveChanges();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!SessionExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            sessionToUpdate.Title = session.Title;
+            sessionToUpdate.Abstract = session.Abstract;
+            sessionToUpdate.SessionStartTime = session.SessionStartTime;
+            sessionToUpdate.SessionEndTime = session.SessionEndTime;            
+            sessionToUpdate.VolunteersRequired = session.VolunteersRequired;
+
+            sessionToUpdate.ActualSessionStartTime = session.ActualSessionStartTime;
+            sessionToUpdate.ActualSessionEndTime = session.ActualSessionEndTime;
+            sessionToUpdate.Attendees10 = session.Attendees10;
+            sessionToUpdate.Attendees50 = session.Attendees50;
+            sessionToUpdate.Notes = session.Notes;
+            
+
+            db.SaveChanges();
+
+            var rooms = db.Rooms.Where(r => r.SessionId == id).ToList();
+
+            var deletedRooms =
+                rooms.Where(x => !session.Rooms.Any(v => v.Name == x.Name)).ToList();
+            var addedRooms =
+                session.Rooms.Where(x => !rooms.Any(v => v.Name == x.Name)).ToList();
+
+            //Do not need an update since there is only 1 field
+            addedRooms.ForEach(x => _roomRepository.AddRoomToSession(x.Name, id) );
+            deletedRooms.ForEach(x => _roomRepository.DeleteRoomFromSession(x.Name, id));
+
+            //User Check Ins
+            var userCheckIns = db.UserCheckIns.Where(r => r.SessionId == id).ToList();
+
+            var deleteduserCheckIns =
+                userCheckIns.Where(x => !session.ProctorCheckIns.Any(v => v.UserId == x.UserId)).ToList();
+            var addeduserCheckIns =
+                session.ProctorCheckIns.Where(x => !userCheckIns.Any(v => v.UserId == x.UserId)).ToList();
+
+            //Do not need an update since there is only 1 field
+            addeduserCheckIns.ForEach(x => _userCheckInRepository.AddUserCheckInToSession(x.UserId, x.CheckInTime, id));
+            deleteduserCheckIns.ForEach(x => _userCheckInRepository.DeleteUserCheckInFromSession(x.UserId, id));
 
             return StatusCode(HttpStatusCode.NoContent);
         }
+        
 
         // POST: api/Sessions
         [ResponseType(typeof(Session))]
@@ -130,5 +156,33 @@ namespace ProctorApi.Controllers
             _sessionRepository.ImportFromFeed();
             return Ok();
         }
+
+        // PUT api/<controller>/AutoAssign
+        [Route("api/Sessions/AutoAssign")]
+        [HttpPut]
+        public IHttpActionResult AutoAssign()
+        {
+            _sessionRepository.AutoAssign();
+            return Ok();
+        }
+
+        // GET api/<controller>/GetUsersForRole/5
+        [Route("api/Sessions/GetSessionsPerUser")]
+        [HttpGet]
+        public List<UserDto> GetSessionsPerUser()
+        {
+            return _sessionRepository.GetSessionsPerUser();
+            
+        }
+
+        // GET api/<controller>/GetUserSchedule/5
+        [Route("api/Sessions/GetUserSchedule")]
+        [HttpGet]
+        public UserDto GetSessionsForUser(string userId)
+        {
+            return _sessionRepository.GetSessionsForUser(userId);
+
+        }
+
     }
 }

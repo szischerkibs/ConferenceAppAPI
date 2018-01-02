@@ -5,8 +5,10 @@ using System.Linq;
 using System.Web;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using ProctorApi.DTO;
 using ProctorApi.Models;
 using ProctorApi.ViewModels;
+using ProctorApi.Providers;
 
 namespace ProctorApi.Repositories
 {
@@ -23,10 +25,75 @@ namespace ProctorApi.Repositories
             _context = new ProctorContext();
         }
 
+        internal IList<RoomDto> getRooms()
+        {
+            return _context.Rooms.Select(r => new RoomDto() { Name = r.Name }).Distinct().ToList();
+        }
+
         public void ImportFromFeed()
         {
             ImportSpeakers();
             ImportSessions();            
+        }
+
+        internal IList<SessionDto> getSessions()
+        {
+            List<SessionDto> sessionsDto = new List<SessionDto>();
+
+            var sessions = _context.Sessions
+                .Include("Rooms")
+                .Include("Assignees")
+                .Include("ProctorCheckIns")
+                .ToList();
+
+            foreach (var session in sessions)
+            {
+                SessionDto sessionDto = MapToDto.MapSessionToDto(session);
+
+                sessionsDto.Add(sessionDto);
+            }
+
+            return sessionsDto;
+
+        }
+
+        internal object getSessionById(int id)
+        {
+            var session = _context.Sessions.Include("Rooms")
+                .Include("Assignees")
+                .Include("Speakers")
+                .Include("ProctorCheckIns")
+                .FirstOrDefault(s => s.Id == id);            
+
+            SessionDto sessionDto = MapToDto.MapSessionToDto(session);
+
+            return sessionDto;
+        }
+
+        internal void AutoAssign()
+        {
+            _context.Database.ExecuteSqlCommand("AutoAssignUsersToSessions");
+        }
+
+        internal List<UserDto> GetSessionsPerUser()
+        {
+            List<UserDto> usersDto = new List<UserDto>();
+            var users = _context.Users.ToList();
+
+            foreach (var user in users)
+            {
+                usersDto.Add(MapToDto.MapUserToDto(user));
+            }
+
+            return usersDto;
+        }
+
+        
+
+        internal UserDto GetSessionsForUser(string userId)
+        {
+            var user = _context.Users.FirstOrDefault(u => u.Id == userId);
+            return MapToDto.MapUserToDto(user);
         }
 
         private void ImportSpeakers()
@@ -81,14 +148,15 @@ namespace ProctorApi.Repositories
             }
         }
 
-        private void AddUpdateSession(SessionImport session)
+        public int AddUpdateSession(SessionImport session)
         {
+            var newSession = new Session();
             var sn = _context.Sessions.FirstOrDefault(s => s.Id == session.Id);
             if (sn == null)
             {
-                var newSession = new Session();
+
                 newSession.Id = session.Id;
-                newSession.SessionTime = DateTime.MinValue;
+                newSession.SessionTime = null;
                 newSession.SessionStartTime = session.SessionStartTime;
                 newSession.SessionEndTime = session.SessionEndTime;
                 newSession.Rooms = AddRooms(session.Rooms, session.Id);
@@ -98,7 +166,7 @@ namespace ProctorApi.Repositories
                 newSession.Category = session.Category;
                 newSession.SessionType = session.SessionType;
                 newSession.Speakers = AddSpeakers(session.Speakers);
-
+                newSession.VolunteersRequired = 1;
                 _context.Sessions.Add(newSession);
             }
             else
@@ -114,7 +182,17 @@ namespace ProctorApi.Repositories
                 sn.Speakers = AddSpeakers(session.Speakers);
 
             }
-            _context.SaveChanges();           
+
+
+            _context.SaveChanges();
+            if (sn == null)
+            {
+                return newSession.Id;
+            }
+            else
+            {
+                return sn.Id;
+            }
         }
 
         private List<Models.Speaker> AddSpeakers(List<ViewModels.Speaker> speakers)

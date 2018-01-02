@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.Http;
 using System.Web.Http;
 using Microsoft.AspNet.Identity.EntityFramework;
+using ProctorApi.DTO;
 using ProctorApi.Models;
 using ProctorApi.Repositories;
 
@@ -20,13 +21,13 @@ namespace ProctorApi.Controllers
         }
 
         // GET api/<controller>
-        public IEnumerable<IdentityRole> Get()
+        public IEnumerable<RoleDto> Get()
         {
             return _roleRepository.GetRoles();
         }
 
         // GET api/<controller>/5
-        public IdentityRole Get(string id)
+        public RoleDto Get(string id)
         {
             return _roleRepository.GetRoleById(id);
         }
@@ -52,7 +53,7 @@ namespace ProctorApi.Controllers
         // GET api/<controller>/GetUsersForRole/5
         [Route("api/Role/GetUsersForRole")]
         [HttpGet]
-        public IEnumerable<User> GetUsersForRole(string id)
+        public IEnumerable<UserDto> GetUsersForRole(string id)
         {
             return _roleRepository.GetUsersForRole(id);
         }
