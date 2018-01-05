@@ -82,6 +82,21 @@ namespace ProctorApi.Repositories
             return usersDto;
         }
 
+        public IEnumerable<UserDto> GetUsersForRoleName(string name)
+        {
+            var selectedRole = _context.Roles.FirstOrDefault(r => r.Name == name);
+
+            UserRepository _userRepository = new UserRepository();
+            var users = _context.Users.Where(user => user.Roles.Any(role => role.RoleId == selectedRole.Id)).ToList();
+            var usersDto = new List<UserDto>();
+            foreach (var user in users)
+            {
+                usersDto.Add(MapToDto.MapUserToDto(user));
+            }
+
+            return usersDto;
+        }
+
         public void AddUserToRole(string userId, string roleId)
         {            
             var role = GetRoleById(roleId);

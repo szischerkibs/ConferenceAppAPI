@@ -58,6 +58,14 @@ namespace ProctorApi.Controllers
             return _roleRepository.GetUsersForRole(id);
         }
 
+        // GET api/<controller>/GetUsersForRoleName/5
+        [Route("api/Role/GetUsersForRoleName")]
+        [HttpGet]
+        public IEnumerable<UserDto> GetUsersForRoleName(string name)
+        {
+            return _roleRepository.GetUsersForRoleName(name);
+        }
+
         // POST api/<controller>/AddUserToRole
         [Route("api/Role/AddUserToRole")]
         [HttpPost]

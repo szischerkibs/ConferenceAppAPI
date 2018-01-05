@@ -184,5 +184,33 @@ namespace ProctorApi.Controllers
 
         }
 
+        // GET api/<controller>/AddUserToSession/5
+        [Route("api/Sessions/AddUserToSession")]
+        [HttpPost]
+        public IHttpActionResult AddUserToSession(string userId, int sessionId)
+        {
+            var session = db.Sessions.FirstOrDefault(s => s.Id == sessionId);
+            var user = db.Users.FirstOrDefault(u => u.Id == userId);
+
+            session.Assignees.Add(user);
+            db.SaveChanges();
+
+            return Ok();
+        }
+
+        // GET api/<controller>/RemoveUserFromSession
+        [Route("api/Sessions/RemoveUserFromSession")]
+        [HttpDelete]
+        public IHttpActionResult RemoveUserFromSession(string userId, int sessionId)
+        {
+            var session = db.Sessions.FirstOrDefault(s => s.Id == sessionId);
+            var user = db.Users.FirstOrDefault(u => u.Id == userId);
+
+            session.Assignees.Remove(user);
+            db.SaveChanges();
+
+            return Ok();
+        }
+
     }
 }

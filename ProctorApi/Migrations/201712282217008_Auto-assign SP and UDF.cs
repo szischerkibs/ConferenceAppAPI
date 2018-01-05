@@ -7,7 +7,8 @@ namespace ProctorApi.Migrations
     {
         public override void Up()
         {
-            Sql(_createFunctionScript);
+            Sql(_createHasCollisionFunctionScript);
+            Sql(_createHasExceptionFunctionScript);
 
             // Create a new store procedure
             CreateStoredProcedure("dbo.AutoAssignUsersToSessions"
@@ -25,7 +26,7 @@ namespace ProctorApi.Migrations
 	            DECLARE @UnableToAssign TABLE(SessionId INT)
  
 	            SELECT @SessionId = s.Id FROM dbo.Sessions s
-	            WHERE s.SessionType IN ('General Session', 'Static Session', 'Pre-Compiler')  
+	            WHERE s.SessionType IN ('General Session', 'Static Session', 'Pre-Compiler', 'Sponsor Session')  
 	            AND isnull(s.VolunteersRequired,1) > (SELECT count(*) FROM dbo.SessionUsers su WHERE su.Session_Id = s.Id)
 	            AND s.Id NOT IN (SELECT uta.SessionId FROM @UnableToAssign uta)
 	            ORDER BY s.SessionStartTime DESC
@@ -45,6 +46,7 @@ namespace ProctorApi.Migrations
 			            ON s.Id = su.Session_Id
 		            WHERE anr.Name = 'Volunteers'
 		            AND dbo.HasCollision(@SessionId, anu.Id) = 0
+                    AND dbo.HasException(@SessionId, anu.Id) = 0
 		            GROUP BY anu.Id
 		            ORDER BY sum(isnull(datediff(SECOND, s.SessionStartTime, s.SessionEndTime),0))
 
@@ -79,7 +81,7 @@ namespace ProctorApi.Migrations
 		            END
 		            SET @SessionId = NULL 
 		            SELECT @SessionId = s.Id FROM dbo.Sessions s
-			            WHERE s.SessionType IN ('General Session', 'Static Session', 'Pre-Compiler')  
+			            WHERE s.SessionType IN ('General Session', 'Static Session', 'Pre-Compiler', 'Sponsor Session')  
 			            AND isnull(s.VolunteersRequired,1) > (SELECT count(*) FROM dbo.SessionUsers su WHERE su.Session_Id = s.Id)
 			            AND s.Id NOT IN (SELECT uta.SessionId FROM @UnableToAssign uta)
 			            ORDER BY s.SessionStartTime DESC
@@ -90,12 +92,14 @@ namespace ProctorApi.Migrations
         public override void Down()
         {
             DropStoredProcedure("dbo.AutoAssignUsersToSessions");
-            Sql(DropFunctionScript);
+            Sql(DropHasCollisionFunctionScript);
+            Sql(DropHasExceptionFunctionScript);
         }
 
-        private const string DropFunctionScript = "DROP FUNCTION [dbo].[HasCollision]";
+        private const string DropHasCollisionFunctionScript = "DROP FUNCTION [dbo].[HasCollision]";
+        private const string DropHasExceptionFunctionScript = "DROP FUNCTION [dbo].[HasException]";
 
-        private readonly string _createFunctionScript = @"
+        private readonly string _createHasCollisionFunctionScript = @"
                     CREATE FUNCTION [dbo].[HasCollision] 
                     (
 	                    -- Add the parameters for the function here
@@ -120,6 +124,7 @@ namespace ProctorApi.Migrations
 	                    (SELECT * FROM dbo.Sessions s 
 		                    WHERE s.Id = @SessionId) b
 		                    WHERE a.SessionStartTime BETWEEN b.SessionStartTime AND b.SessionEndTime
+                                OR a.SessionEndTime BETWEEN b.SessionStartTime AND b.SessionEndTime
 
 	                    IF @CollisionCount > 0
 	                    BEGIN
@@ -131,5 +136,40 @@ namespace ProctorApi.Migrations
 
                     END
                     ";
+        private readonly string _createHasExceptionFunctionScript = @"
+                    CREATE FUNCTION [dbo].[HasException] 
+                    (
+	                    -- Add the parameters for the function here
+	                    @SessionId INT,
+	                    @UserId VARCHAR(128)
+                    )
+                    RETURNS bit
+                    AS
+                    BEGIN
+	                    -- Declare the return variable here
+	                    DECLARE @Result BIT = 0
+
+	                    -- Add the T-SQL statements to compute the return value here
+	                    DECLARE @ExceptionCount INT = 0
+
+	                    SELECT @ExceptionCount = count(*) FROM
+	                    (SELECT se.Id , se.StartTime, se.EndTime FROM dbo.ScheduleExceptions se		                    
+		                    WHERE se.UserId = @UserId) a,
+	
+	                    (SELECT * FROM dbo.Sessions s 
+		                    WHERE s.Id = @SessionId) b
+		                    WHERE b.SessionStartTime BETWEEN a.StartTime AND a.EndTime
+                                OR b.SessionEndTime BETWEEN a.StartTime AND a.EndTime
+
+	                    IF @ExceptionCount > 0
+	                    BEGIN
+		                    SET @Result = 1
+	                    END
+
+	                    -- Return the result of the function
+	                    RETURN @Result
+
+                    END";
+
     }
 }

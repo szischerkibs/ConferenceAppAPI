@@ -14,6 +14,7 @@ using ProctorApi.Models;
 using ProctorApi.Utils;
 using ProctorApi.Repositories;
 using ProctorApi.DTO;
+using ProctorApi.ViewModels;
 
 namespace ProctorApi.Controllers
 {
@@ -110,6 +111,69 @@ namespace ProctorApi.Controllers
             db.SaveChanges();
 
             return Ok(user);
+        }
+
+        // GET api/<controller>/PasswordReset
+        [Route("api/Users/PasswordReset")]
+        [HttpPut]
+        public IHttpActionResult PasswordReset(PasswordReset passwordReset)
+        {
+            var userManager = new ApplicationUserManager(new UserStore<User>(db));
+            var user = userManager.FindById(passwordReset.UserId);
+
+            if (!userManager.HasPassword(passwordReset.UserId))
+            {
+                var result = userManager.AddPassword(passwordReset.UserId, passwordReset.NewPassword);
+
+                if (result.Succeeded)
+                {
+                    return Ok();
+                }
+                else
+                {
+                    return BadRequest(result.Errors.First());
+                }
+            }
+
+            if(userManager.CheckPassword(user, passwordReset.OldPassword))
+            {
+                userManager.RemovePassword(passwordReset.UserId);
+                var result = userManager.AddPassword(passwordReset.UserId, passwordReset.NewPassword);
+
+                if (result.Succeeded)
+                {
+                    return Ok();
+                }
+                else
+                {
+                    return BadRequest(result.Errors.First());
+                }
+
+            }
+            else
+            {
+                return BadRequest("Old password is incorrect.");
+            }
+        }
+
+        // GET api/<controller>/AdminPasswordReset
+        [Route("api/Users/AdminPasswordReset")]
+        [HttpPut]
+        public IHttpActionResult AdminPasswordReset(PasswordReset passwordReset)
+        {
+            var userManager = new ApplicationUserManager(new UserStore<User>(db));
+            
+            userManager.RemovePassword(passwordReset.UserId);
+            var result = userManager.AddPassword(passwordReset.UserId, passwordReset.NewPassword);
+
+            if (result.Succeeded)
+            {
+                return Ok();
+            }
+            else
+            {
+                return BadRequest(result.Errors.First());
+            }
         }
 
         protected override void Dispose(bool disposing)

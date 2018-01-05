@@ -330,6 +330,7 @@
     <Compile Include="Repositories\UserRepository.cs" />
     <Compile Include="Startup.cs" />
     <Compile Include="Utils\ApplicationUserManager.cs" />
+    <Compile Include="ViewModels\PasswordReset.cs" />
     <Compile Include="ViewModels\SessionImport.cs" />
     <Compile Include="ViewModels\SpeakerImport.cs" />
   </ItemGroup>
@@ -364,6 +365,9 @@
     <Content Include="ApplicationInsights.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <None Include="Properties\PublishProfiles\Deploy Local IIS.pubxml" />
+    <None Include="Properties\PublishProfiles\FolderProfile.pubxml" />
+    <None Include="Properties\PublishProfiles\Package For CodeMash Server.pubxml" />
     <None Include="Scripts\jquery-1.10.2.intellisense.js" />
     <Content Include="Scripts\jquery-1.10.2.js" />
     <Content Include="Scripts\jquery-1.10.2.min.js" />
