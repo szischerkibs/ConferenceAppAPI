@@ -131,6 +131,18 @@ namespace ProctorApi.Repositories
                 _context.Speakers.Add(newSpeaker);
                 _context.SaveChanges();
             }
+            else
+            {
+                spkr.FirstName = speaker.FirstName;
+                spkr.LastName = speaker.LastName;
+                spkr.Biography = speaker.Biography;
+                spkr.GravatarUrl = speaker.GravatarUrl;
+                spkr.TwitterLink = speaker.TwitterLink;
+                spkr.GitHubLink = speaker.GitHubLink;
+                spkr.LinkedInProfile = speaker.LinkedInProfile;
+                spkr.BlogUrl = speaker.BlogUrl;
+                _context.SaveChanges();
+            }
         }
 
         private void ImportSessions()
@@ -151,11 +163,15 @@ namespace ProctorApi.Repositories
         public int AddUpdateSession(SessionImport session)
         {
             var newSession = new Session();
-            var sn = _context.Sessions.FirstOrDefault(s => s.Id == session.Id);
+            var sn = _context.Sessions
+                            .Include("Speakers")
+                            .Include("Rooms")
+                            .Include("Tags")
+                            .FirstOrDefault(s => s.FeedSessionId == session.Id);
             if (sn == null)
             {
 
-                newSession.Id = session.Id;
+                newSession.FeedSessionId = session.Id;
                 newSession.SessionTime = null;
                 newSession.SessionStartTime = session.SessionStartTime;
                 newSession.SessionEndTime = session.SessionEndTime;
@@ -173,13 +189,15 @@ namespace ProctorApi.Repositories
             {
                 sn.SessionStartTime = session.SessionStartTime;
                 sn.SessionEndTime = session.SessionEndTime;
-                sn.Rooms = AddRooms(session.Rooms, session.Id);
+                //sn.Rooms = AddRooms(session.Rooms, sn.Id);
                 sn.Title = session.Title;
                 sn.Abstract = session.Abstract;
-                sn.Tags = AddTags(session.Tags, session.Id);
+                //sn.Tags = AddTags(session.Tags, sn.Id);
                 sn.Category = session.Category;
                 sn.SessionType = session.SessionType;
-                sn.Speakers = AddSpeakers(session.Speakers);
+                UpdateSpeakers(session, sn);
+                UpdateRooms(session, sn);
+                UpdateTags(session, sn);
 
             }
 
@@ -192,6 +210,123 @@ namespace ProctorApi.Repositories
             else
             {
                 return sn.Id;
+            }
+        }
+
+        private static void UpdateSpeakers(SessionImport session, Session sn)
+        {
+            foreach (var speaker in session.Speakers)
+            {
+                if (sn.Speakers.FirstOrDefault(s => s.Id == speaker.Id) == null)
+                {
+                    sn.Speakers.Add(new Models.Speaker()
+                    {
+                        Id = speaker.Id,
+                        FirstName = speaker.FirstName,
+                        LastName = speaker.LastName,
+                        GravatarUrl = speaker.GravatarUrl
+                    });
+                }
+            }
+
+            foreach (var speaker in sn.Speakers)
+            {
+                if (session.Speakers.FirstOrDefault(s => s.Id == speaker.Id) == null)
+                {
+                    sn.Speakers.Remove(speaker);
+                }
+            }
+        }
+
+        public List<SessionResult> GetSessionResults()
+        {
+            List<SessionResult> sessionResults = new List<SessionResult>();
+            var sessions = _context.Sessions
+                .Include("Rooms")
+                .Include("Assignees")
+                .Include("ProctorCheckIns")
+                .Where(s => s.SessionType != "Static Session")
+                .ToList();
+
+            foreach (var session in sessions)
+            {
+                var sessionResult = new SessionResult();
+
+                sessionResult.Id = session.FeedSessionId ?? 0;
+                sessionResult.SessionStartTime = session.SessionStartTime;
+                sessionResult.SessionEndTime = session.SessionEndTime;
+                sessionResult.Title = session.Title;
+                sessionResult.SessionType = session.SessionType;
+                sessionResult.ActualSessionStartTime = session.ActualSessionStartTime;
+                sessionResult.ActualSessionEndTime = session.ActualSessionEndTime;
+                sessionResult.Attendees10 = session.Attendees10;
+                sessionResult.Attendees50 = session.Attendees50;
+                sessionResult.Notes = session.Notes;
+
+                if (session.ProctorCheckIns.Count > 0)
+                {
+                    sessionResult.ProctorCheckInTime = session.ProctorCheckIns.OrderBy(c => c.CheckInTime).FirstOrDefault().CheckInTime;
+                }
+
+                var rooms = "";
+                session.Rooms.OrderBy(r => r.Name).ToList().ForEach(r => rooms += r.Name + ",");
+                sessionResult.Rooms = rooms.Substring(0,rooms.Length-1);
+
+                if (session.Assignees.Count > 0) {
+                    var assignees = "";
+                    session.Assignees.ForEach(a => assignees += a.FirstName + " " + a.LastName + ";");
+                    sessionResult.Assignees = assignees.Substring(0, assignees.Length - 1);
+                }
+
+                sessionResults.Add(sessionResult);
+            }
+
+            return sessionResults;
+        }
+
+        private static void UpdateRooms(SessionImport session, Session sn)
+        {
+            foreach (var room in session.Rooms)
+            {
+                if (sn.Rooms.FirstOrDefault(r => r.Name == room) == null)
+                {
+                    sn.Rooms.Add(new Models.Room()
+                    {
+                        Name = room,
+                        SessionId = sn.Id
+                    });
+                }
+            }
+
+            foreach (var room in sn.Rooms)
+            {
+                if (session.Rooms.FirstOrDefault(r => r == room.Name) == null)
+                {
+                    sn.Rooms.Remove(room);
+                }
+            }
+        }
+
+        private static void UpdateTags(SessionImport session, Session sn)
+        {
+            foreach (var tag in session.Tags)
+            {
+                if (sn.Tags.FirstOrDefault(t => t.Name == tag) == null)
+                {
+                    sn.Tags.Add(new Models.Tag()
+                    {
+                        Name = tag,
+                        SessionId = sn.Id
+                    });
+                }
+            }
+
+            foreach (var tag in sn.Tags)
+            {
+                if (session.Tags.FirstOrDefault(r => r == tag.Name) == null)
+                {
+                    sn.Tags.Remove(tag);
+                }
             }
         }
 
@@ -223,7 +358,7 @@ namespace ProctorApi.Repositories
             return speakerList;
         }
 
-        private List<Tag> AddTags(List<object> tags, int sessionId)
+        private List<Tag> AddTags(List<string> tags, int sessionId)
         {
             List<Tag> tagsList = new List<Tag>();
 

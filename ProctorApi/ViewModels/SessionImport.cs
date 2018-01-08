@@ -24,7 +24,7 @@ namespace ProctorApi.ViewModels
         public string Title { get; set; }
         public string Abstract { get; set; }
         public string SessionType { get; set; }
-        public List<object> Tags { get; set; }
+        public List<string> Tags { get; set; }
         public string Category { get; set; }
         public List<Speaker> Speakers { get; set; }
     }

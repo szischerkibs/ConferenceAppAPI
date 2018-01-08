@@ -32,6 +32,7 @@ namespace ProctorApi.Providers
             var sessionDto = new SessionDto()
             {
                 Id = session.Id,
+                FeedSessionId = session.FeedSessionId,
                 SessionStartTime = session.SessionStartTime,
                 SessionEndTime = session.SessionEndTime,
                 Rooms = session.Rooms,

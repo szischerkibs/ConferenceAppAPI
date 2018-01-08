@@ -2,5 +2,5 @@
 <parameters>
   <setParameter name="IIS Web Application Name" value="InternWebApi" />
   <setParameter name="DefaultConnection-Web.config Connection String" value="Data Source=localhost;Initial Catalog=codemash2018;Integrated Security=True" />
-  <setParameter name="DefaultConnection_DatabasePublish-Web.config Connection String" value="Data Source=localhost;Initial Catalog=codemash2018;Integrated Security=True" />
+  <setParameter name="DefaultConnection_DatabasePublish-Web.config Connection String" value="Data Source=localhost;Initial Catalog=codemash2018;Persist Security Info=True;User ID=ProctorApi;Password=2001SXr600" />
 </parameters>

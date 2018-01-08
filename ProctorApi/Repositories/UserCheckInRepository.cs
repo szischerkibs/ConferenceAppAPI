@@ -15,7 +15,7 @@ namespace ProctorApi.Repositories
             _context = new ProctorContext();
         }
 
-        public void AddUserCheckInToSession(string userId, DateTime checkInTime , int sessionId)
+        public void AddUserCheckInToSession(string userId, DateTime? checkInTime , int sessionId)
         {
             var session = _context.Sessions.Include("ProctorCheckIns").FirstOrDefault(s => s.Id == sessionId);
             var newUserCheckIn = _context.UserCheckIns.Create();

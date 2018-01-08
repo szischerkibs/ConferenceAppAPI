@@ -123,8 +123,8 @@ namespace ProctorApi.Migrations
 	
 	                    (SELECT * FROM dbo.Sessions s 
 		                    WHERE s.Id = @SessionId) b
-		                    WHERE a.SessionStartTime BETWEEN b.SessionStartTime AND b.SessionEndTime
-                                OR a.SessionEndTime BETWEEN b.SessionStartTime AND b.SessionEndTime
+		                    WHERE b.SessionStartTime BETWEEN a.SessionStartTime AND a.SessionEndTime
+                                OR b.SessionEndTime BETWEEN a.SessionStartTime AND a.SessionEndTime
 
 	                    IF @CollisionCount > 0
 	                    BEGIN

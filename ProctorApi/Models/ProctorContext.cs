@@ -30,6 +30,7 @@ namespace ProctorApi.Models
         public DbSet<Tag> Tags { get; set; }
         public DbSet<UserCheckIn> UserCheckIns { get; set; }
         public DbSet<ScheduleException> ScheduleExceptions { get; set; }
+        public DbSet<SessionSwitch> SessionSwitch { get; set; }
 
 
         public async Task<bool> AddRefreshToken(RefreshToken token)

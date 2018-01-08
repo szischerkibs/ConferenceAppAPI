@@ -11,6 +11,7 @@ using ProctorApi.Repositories;
 
 namespace ProctorApi.Controllers
 {
+    [Authorize]
     public class RoleController : ApiController
     {
         private RoleRepository _roleRepository;

@@ -9,6 +9,7 @@ namespace ProctorApi.DTO
     public class SessionDto
     {
         public int Id { get; set; }
+        public int? FeedSessionId { get; set; }
         public DateTime? SessionTime { get; set; }
         public DateTime? SessionStartTime { get; set; }
         public DateTime? SessionEndTime { get; set; }

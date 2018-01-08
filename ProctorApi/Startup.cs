@@ -51,11 +51,11 @@ namespace ProctorApi
                 TokenEndpointPath = new PathString("/api/Token"),
                 Provider = new ApplicationOAuthProvider(PublicClientId),
                 AuthorizeEndpointPath = new PathString("/api/Account/ExternalLogin"),
-                AccessTokenExpireTimeSpan = TimeSpan.FromMinutes(ProctorApi.Utils.Configuration.TokenExpireTimeMinutes),
+                AccessTokenExpireTimeSpan = TimeSpan.FromDays(14), //TimeSpan.FromMinutes(ProctorApi.Utils.Configuration.TokenExpireTimeMinutes),
                 // In production mode set AllowInsecureHttp = false
                 AllowInsecureHttp = true,
                 AccessTokenFormat = new JWTFormat(ProctorApi.Utils.Configuration.TokenIssuer),
-                RefreshTokenProvider = new RefreshTokenProvider()
+                //RefreshTokenProvider = new RefreshTokenProvider()
             };
             app.UseOAuthAuthorizationServer(OAuthOptions);
             app.UseOAuthBearerAuthentication(new OAuthBearerAuthenticationOptions());

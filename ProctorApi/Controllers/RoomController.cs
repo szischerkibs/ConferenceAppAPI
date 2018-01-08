@@ -10,6 +10,7 @@ using ProctorApi.Repositories;
 
 namespace ProctorApi.Controllers
 {
+    [Authorize]
     public class RoomController : ApiController
     {
         private ProctorContext db = new ProctorContext();

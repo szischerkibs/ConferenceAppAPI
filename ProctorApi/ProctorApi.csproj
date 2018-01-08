@@ -247,6 +247,7 @@
     <Compile Include="Controllers\RoomController.cs" />
     <Compile Include="Controllers\ScheduleExceptionsController.cs" />
     <Compile Include="Controllers\SessionsController.cs" />
+    <Compile Include="Controllers\SessionSwitchesController.cs" />
     <Compile Include="Controllers\UsersController.cs" />
     <Compile Include="Controllers\ValuesController.cs" />
     <Compile Include="DTO\CheckInInfoDto.cs" />
@@ -306,8 +307,21 @@
     <Compile Include="Migrations\201801011445395_Added schedule exceptions.Designer.cs">
       <DependentUpon>201801011445395_Added schedule exceptions.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201801051806305_Added FeedSessionId in Session model.cs" />
+    <Compile Include="Migrations\201801051806305_Added FeedSessionId in Session model.Designer.cs">
+      <DependentUpon>201801051806305_Added FeedSessionId in Session model.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201801061949412_Changed UserCheckIn time to nullable.cs" />
+    <Compile Include="Migrations\201801061949412_Changed UserCheckIn time to nullable.Designer.cs">
+      <DependentUpon>201801061949412_Changed UserCheckIn time to nullable.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201801062239438_Added SessionSwitch model.cs" />
+    <Compile Include="Migrations\201801062239438_Added SessionSwitch model.Designer.cs">
+      <DependentUpon>201801062239438_Added SessionSwitch model.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\ScheduleException.cs" />
+    <Compile Include="Models\SessionSwitch.cs" />
     <Compile Include="Models\UserCheckIn.cs" />
     <Compile Include="Models\ProctorContext.cs" />
     <Compile Include="Models\RefreshToken.cs" />
@@ -332,6 +346,7 @@
     <Compile Include="Utils\ApplicationUserManager.cs" />
     <Compile Include="ViewModels\PasswordReset.cs" />
     <Compile Include="ViewModels\SessionImport.cs" />
+    <Compile Include="ViewModels\SessionResult.cs" />
     <Compile Include="ViewModels\SpeakerImport.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -443,6 +458,15 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201801011445395_Added schedule exceptions.resx">
       <DependentUpon>201801011445395_Added schedule exceptions.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201801051806305_Added FeedSessionId in Session model.resx">
+      <DependentUpon>201801051806305_Added FeedSessionId in Session model.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201801061949412_Changed UserCheckIn time to nullable.resx">
+      <DependentUpon>201801061949412_Changed UserCheckIn time to nullable.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201801062239438_Added SessionSwitch model.resx">
+      <DependentUpon>201801062239438_Added SessionSwitch model.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

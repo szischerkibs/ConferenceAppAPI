@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Data;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -11,15 +13,18 @@ using System.Web.Http.Description;
 using ProctorApi.DTO;
 using ProctorApi.Models;
 using ProctorApi.Repositories;
+using ProctorApi.ViewModels;
 
 namespace ProctorApi.Controllers
 {
+    [Authorize]
     public class SessionsController : ApiController
     {
         private ProctorContext db = new ProctorContext();
         private SessionRepository _sessionRepository;
         private RoomRepository _roomRepository;
         private UserCheckInRepository _userCheckInRepository;
+        private string connStr = ConfigurationManager.ConnectionStrings["DefaultConnection"].ConnectionString;
 
         public SessionsController()
         {
@@ -94,6 +99,13 @@ namespace ProctorApi.Controllers
                 userCheckIns.Where(x => !session.ProctorCheckIns.Any(v => v.UserId == x.UserId)).ToList();
             var addeduserCheckIns =
                 session.ProctorCheckIns.Where(x => !userCheckIns.Any(v => v.UserId == x.UserId)).ToList();
+
+            foreach(var checkIn in session.ProctorCheckIns)
+            {
+                var foundCheckIn = userCheckIns.FirstOrDefault(c => c.UserId == checkIn.UserId);
+                foundCheckIn.CheckInTime = checkIn.CheckInTime;
+                db.SaveChanges();
+            }
 
             //Do not need an update since there is only 1 field
             addeduserCheckIns.ForEach(x => _userCheckInRepository.AddUserCheckInToSession(x.UserId, x.CheckInTime, id));
@@ -189,11 +201,34 @@ namespace ProctorApi.Controllers
         [HttpPost]
         public IHttpActionResult AddUserToSession(string userId, int sessionId)
         {
-            var session = db.Sessions.FirstOrDefault(s => s.Id == sessionId);
-            var user = db.Users.FirstOrDefault(u => u.Id == userId);
+            var sql = @"INSERT INTO dbo.SessionUsers
+                            (
+                                Session_Id
+                              , User_Id
+                            )
+                            VALUES
+                            (
+                                @SessionId
+	                            , @UserId
+                            )";
 
-            session.Assignees.Add(user);
-            db.SaveChanges();
+            using (var conn = new SqlConnection(connStr))
+            {
+                using (var cmd = new SqlCommand(sql, conn))
+                {
+                    cmd.Parameters.AddWithValue("@SessionId", sessionId);
+                    cmd.Parameters.AddWithValue("@UserId", userId);
+
+                    conn.Open();
+                    cmd.ExecuteNonQuery();
+                }
+            }
+
+            //    var session = db.Sessions.FirstOrDefault(s => s.Id == sessionId);
+            //var user = db.Users.FirstOrDefault(u => u.Id == userId);
+
+            //session.Assignees.Add(user);
+            //db.SaveChanges();
 
             return Ok();
         }
@@ -203,13 +238,36 @@ namespace ProctorApi.Controllers
         [HttpDelete]
         public IHttpActionResult RemoveUserFromSession(string userId, int sessionId)
         {
-            var session = db.Sessions.FirstOrDefault(s => s.Id == sessionId);
-            var user = db.Users.FirstOrDefault(u => u.Id == userId);
+            var sql = @"DELETE dbo.SessionUsers WHERE Session_Id = @SessionId AND User_Id = @UserId";
 
-            session.Assignees.Remove(user);
-            db.SaveChanges();
+            using (var conn = new SqlConnection(connStr))
+            {
+                using (var cmd = new SqlCommand(sql, conn))
+                {
+                    cmd.Parameters.AddWithValue("@SessionId", sessionId);
+                    cmd.Parameters.AddWithValue("@UserId", userId);
+
+                    conn.Open();
+                    cmd.ExecuteNonQuery();
+                }
+            }
+
+            //var session = db.Sessions.FirstOrDefault(s => s.Id == sessionId);
+            //var user = db.Users.FirstOrDefault(u => u.Id == userId);
+
+            //session.Assignees.Remove(user);
+            //db.SaveChanges();
 
             return Ok();
+        }
+
+        // GET api/<controller>/Results
+        [Route("api/Sessions/Results")]
+        [HttpGet]
+        public List<SessionResult> GetSessionResults()
+        {
+            return _sessionRepository.GetSessionResults();
+
         }
 
     }

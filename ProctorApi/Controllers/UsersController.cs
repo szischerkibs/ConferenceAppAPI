@@ -18,6 +18,7 @@ using ProctorApi.ViewModels;
 
 namespace ProctorApi.Controllers
 {
+    [Authorize]
     public class UsersController : ApiController
     {
         private ProctorContext db = new ProctorContext();
@@ -86,7 +87,7 @@ namespace ProctorApi.Controllers
         {
             var userManager = new ApplicationUserManager(new UserStore<User>(db));
             
-            var newUser = userManager.Create(user, "password");
+            var newUser = userManager.Create(user, "dothemash18");
            
             if (newUser.Succeeded)
             {

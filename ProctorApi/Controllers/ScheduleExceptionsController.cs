@@ -12,6 +12,7 @@ using ProctorApi.Models;
 
 namespace ProctorApi.Controllers
 {
+    [Authorize]
     public class ScheduleExceptionsController : ApiController
     {
         private ProctorContext db = new ProctorContext();
