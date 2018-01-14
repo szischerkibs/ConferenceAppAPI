@@ -100,16 +100,18 @@ namespace ProctorApi.Controllers
             var addeduserCheckIns =
                 session.ProctorCheckIns.Where(x => !userCheckIns.Any(v => v.UserId == x.UserId)).ToList();
 
-            foreach(var checkIn in session.ProctorCheckIns)
-            {
-                var foundCheckIn = userCheckIns.FirstOrDefault(c => c.UserId == checkIn.UserId);
-                foundCheckIn.CheckInTime = checkIn.CheckInTime;
-                db.SaveChanges();
-            }
+            
 
             //Do not need an update since there is only 1 field
             addeduserCheckIns.ForEach(x => _userCheckInRepository.AddUserCheckInToSession(x.UserId, x.CheckInTime, id));
             deleteduserCheckIns.ForEach(x => _userCheckInRepository.DeleteUserCheckInFromSession(x.UserId, id));
+
+            //foreach (var checkIn in session.ProctorCheckIns)
+            //{
+            //    var foundCheckIn = userCheckIns.FirstOrDefault(c => c.UserId == checkIn.UserId);
+            //    foundCheckIn.CheckInTime = checkIn.CheckInTime;
+            //    db.SaveChanges();
+            //}
 
             return StatusCode(HttpStatusCode.NoContent);
         }

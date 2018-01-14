@@ -153,12 +153,27 @@ namespace ProctorApi.Repositories
                 // Now parse with JSON.Net
                 List<SessionImport> sessionImport = JsonConvert.DeserializeObject<List<SessionImport>>(json);
 
+
+
                 foreach (SessionImport session in sessionImport)
                 {
                     AddUpdateSession(session);
                 }
+
+                var dbSessions = _context.Sessions.ToList();
+
+                var sessionsToBeDeleted =
+                dbSessions.Where(x => !sessionImport.Any(s => s.Id == x.FeedSessionId)).ToList();
+
+                foreach(var session in sessionsToBeDeleted)
+                {
+                    _context.Sessions.Remove(session);
+                    _context.SaveChanges();
+                }
+
             }
         }
+
 
         public int AddUpdateSession(SessionImport session)
         {

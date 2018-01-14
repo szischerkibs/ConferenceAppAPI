@@ -68,9 +68,9 @@ namespace ProctorApi.Providers
                 context.Validated(ticket);
                 context.Request.Context.Authentication.SignIn(cookiesIdentity);
             }
-            catch 
+            catch (Exception ex)
             {
-                context.SetError("Critical Error", "Critical Error logging in");
+                context.SetError("Critical Error", "Critical Error logging in - " + ex.Message);
             }
 
         }
